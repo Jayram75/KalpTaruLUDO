@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html>
+<style>
+	body { margin:0; }
+</style>
+<body>
+    <canvas 
+        id="myCanvas"
+        style="border:1px solid #000000;">
+        Play LUDO on your desktop browser!
+    </canvas>
+    <script>
+        let LUDO_UNIT_LENGTH = 45;
+		let FONT_SIZE = 40;
+        const MARGIN_UNITS = 1;
+		const TEXT_X_SHIFT = -0.3;
+		const TEXT_Y_SHIFT = 0.3;
+		const MAX_ROUND_INDEX = 52;
+        const COLORS = ['blue', 'red', 'green', 'orange'];
+        const desaturatedColors = {
+            orange: "#bf9240",
+            red: "#bf4040",
+            blue: "#4040bf",
+            green: "#206020"
+        };
+        
+        let currentPlayers = [0, 2];
+		let lalPlayers = [];
+		let lalPlayersCount = 0;
+        let places = [];
+		let forwardBackwardPlaces = [];
+		let roundIconPlaces = [];
+        let ctx;
+        let canvas;
+        let currentPlayerIndex = 0;
+        let currentPasaValue = 0;
+		let currentPasaValue1 = 0;
+		let currentPasaValue2 = 0;
+        let sixInARow = 0;
+        let currentPlayersCurrentIndex = 0;
+		let gotiCountOnCurrentPlace = [0, 0, 0, 0];
+		let xy;
+        let players = [
+            {
+				rank: 0,
+				victim: 0,
+				killer: 0,
+				i: 1,
+				j: 0,
+				backward: false,
+				round: false,
+                gotis: {
+                    placesIndex: [7, 10, 13, 16, 19, 43, 40, 37, 34, 31, 28, 27, 26, 29, 32, 35, 38, 41, 65, 62, 59, 56, 53, 50, 49, 48, 51, 54, 57, 60, 63, 87, 84, 81, 78, 75, 72, 71, 70, 73, 76, 79, 82, 85, 21, 18, 15, 12, 9, 6, 5, 8, 11, 14, 17, 20, 88],
+					criticalIndex: 4,
+                    goti: [
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 0,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 1,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 2,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 3,
+							atCriticalPosition: false
+                        }
+                    ]
+                }
+            },
+            {
+				rank: 0,
+				victim: 0,
+				killer: 0,
+				i: 0,
+				j: 0,
+				backward: false,
+				round: false,
+                gotis: {
+                    placesIndex: [29, 32, 35, 38, 41, 65, 62, 59, 56, 53, 50, 49, 48, 51, 54, 57, 60, 63, 87, 84, 81, 78, 75, 72, 71, 70, 73, 76, 79, 82, 85, 21, 18, 15, 12, 9, 6, 5, 4, 7, 10, 13, 16, 19, 43, 40, 37, 34, 31, 28, 27, 30, 33, 36, 39, 42, 89],
+					criticalIndex: 26,
+                    goti: [
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 22,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 23,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 24,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 25,
+							atCriticalPosition: false
+                        }
+                    ]
+                }
+            },
+            {
+				rank: 0,
+				victim: 0,
+				killer: 0,
+				i: 0,
+				j: 1,
+				backward: false,
+				round: false,
+                gotis: {
+                    placesIndex: [51, 54, 57, 60, 63, 87, 84, 81, 78, 75, 72, 71, 70, 73, 76, 79, 82, 85, 21, 18, 15, 12, 9, 6, 5, 4, 7, 10, 13, 16, 19, 43, 40, 37, 34, 31, 28, 27, 26, 29, 32, 35, 38, 41, 65, 62, 59, 56, 53, 50, 49, 52, 55, 58, 61, 64, 90],
+					criticalIndex: 48,
+                    goti: [
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 44,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 45,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 46,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 47,
+							atCriticalPosition: false
+                        }
+                    ]
+                }
+            },
+            {
+				rank: 0,
+				victim: 0,
+				killer: 0,
+				i: 1,
+				j: 1,
+				backward: false,
+				round: false,
+                gotis: {
+                    placesIndex: [73, 76, 79, 82, 85, 21, 18, 15, 12, 9, 6, 5, 4, 7, 10, 13, 16, 19, 43, 40, 37, 34, 31, 28, 27, 26, 29, 32, 35, 38, 41, 65, 62, 59, 56, 53, 50, 49, 48, 51, 54, 57, 60, 63, 87, 84, 81, 78, 75, 72, 71, 74, 77, 80, 83, 86, 91],
+					criticalIndex: 70,
+                    goti: [
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 66,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 67,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 68,
+							atCriticalPosition: false
+                        },
+                        {
+                            currentIndex: -1,
+							tempIndex: -1,
+                            startPlaceIndex: 69,
+							atCriticalPosition: false
+                        }
+                    ]
+                }
+            },
+        ];
+
+        let drawCircle = (x, y, radius = (LUDO_UNIT_LENGTH/2 - 3), placesToPush) => {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            if(placesToPush) placesToPush.push({x, y});
+        }
+		
+		let drawCircleUsingFormula = (I, J, placesToPush, radius = (LUDO_UNIT_LENGTH/2 - 3)) => {
+			drawCircle(
+                (I)*LUDO_UNIT_LENGTH, 
+                (MARGIN_UNITS + J)*LUDO_UNIT_LENGTH, 
+                radius, placesToPush
+            );
+		}
+		
+		let fillCircle = (x, y, radius = (LUDO_UNIT_LENGTH/2 - 3), placesToPush) => {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            if(placesToPush) placesToPush.push({x, y});
+        }
+		
+		let fillCircleUsingFormula = (I, J, placesToPush, radius = (LUDO_UNIT_LENGTH/2 - 3)) => {
+			fillCircle(
+                (I)*LUDO_UNIT_LENGTH, 
+                (MARGIN_UNITS + J)*LUDO_UNIT_LENGTH, 
+                radius, placesToPush
+            );
+		}
+		
+		let fillTextUsingFormula = (text, I, J) => {
+			ctx.fillText(
+				text, 
+				(I)*LUDO_UNIT_LENGTH, 
+				(MARGIN_UNITS + J)*LUDO_UNIT_LENGTH
+			);
+		}
+		
+		let drawKillCount = (playerIndex) => {
+			let i = players[playerIndex].i;
+			let j = players[playerIndex].j;
+			
+			ctx.fillStyle = 'white';
+			fillCircleUsingFormula(9*j + 2, 9*i + 0.5);
+			fillCircleUsingFormula(9*j + 4, 9*i + 0.5);
+			
+			ctx.font = FONT_SIZE + "px Verdana";
+			ctx.fillStyle = 'green';
+			fillTextUsingFormula(players[playerIndex].killer + "", 9*j + 2 + TEXT_X_SHIFT, 9*i + 0.5 + TEXT_Y_SHIFT)
+			ctx.fillStyle = 'red';
+			fillTextUsingFormula(players[playerIndex].victim + "", 9*j + 4 + TEXT_X_SHIFT, 9*i + 0.5 + TEXT_Y_SHIFT)
+		}
+
+		let drawForwardOrBackward = (playerIndex) => {
+			let i = players[playerIndex].i;
+			let j = players[playerIndex].j;
+			
+			let I = 9*j + 0.5;
+			let J = 9*i + 3;
+			
+			ctx.fillStyle = 'white';
+			fillCircleUsingFormula(I, J, forwardBackwardPlaces);
+			
+			ctx.font = FONT_SIZE + "px Verdana";
+			ctx.fillStyle = players[playerIndex].backward ? '#4040bf':'#bf9240';
+			fillTextUsingFormula(players[playerIndex].backward ? '<':'>', I + TEXT_X_SHIFT, J + TEXT_Y_SHIFT);
+		}
+
+		let drawRoundState = (playerIndex) => {
+			let i = players[playerIndex].i;
+			let j = players[playerIndex].j;
+			
+			let I = 9*j + 5.5;
+			let J = 9*i + 3;
+			
+			ctx.fillStyle = 'white';
+			fillCircleUsingFormula(I, J, roundIconPlaces);
+			
+			ctx.font = FONT_SIZE + "px Verdana";
+			ctx.fillStyle = players[playerIndex].round ? '#4040bf':'#bf9240';
+			fillTextUsingFormula(players[playerIndex].round ? 'O':'X', I + TEXT_X_SHIFT, J + TEXT_Y_SHIFT);
+		}
+
+        let drawHome = (i, j, color) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(
+                (9*j)*LUDO_UNIT_LENGTH, 
+                (MARGIN_UNITS + 9*i)*LUDO_UNIT_LENGTH, 
+                6*LUDO_UNIT_LENGTH, 6*LUDO_UNIT_LENGTH
+            );
+            ctx.fillStyle = 'white';
+            ctx.fillRect(
+                (9*j + 1)*LUDO_UNIT_LENGTH, 
+                (MARGIN_UNITS + 9*i + 1)*LUDO_UNIT_LENGTH, 
+                4*LUDO_UNIT_LENGTH, 4*LUDO_UNIT_LENGTH
+            );
+            //Draw home seats:
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            let radius = 3*LUDO_UNIT_LENGTH/4;
+			drawCircleUsingFormula(9*j + 2, 9*i + 2, places, radius);
+			drawCircleUsingFormula(9*j + 2, 9*i + 4, places, radius);
+			drawCircleUsingFormula(9*j + 4, 9*i + 4, places, radius);
+			drawCircleUsingFormula(9*j + 4, 9*i + 2, places, radius);
+        }
+
+        let drawSquare = (x, y, fillRect = false, drawBit = false) => {
+            if(fillRect || drawBit) {
+                ctx.fillRect(x, y, LUDO_UNIT_LENGTH, LUDO_UNIT_LENGTH);
+                ctx.strokeStyle = 'white';
+            } 
+            ctx.beginPath();
+            ctx.strokeRect(x, y, LUDO_UNIT_LENGTH, LUDO_UNIT_LENGTH);
+            if(drawBit) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + LUDO_UNIT_LENGTH, y + LUDO_UNIT_LENGTH);
+                ctx.moveTo(x, y + LUDO_UNIT_LENGTH);
+                ctx.lineTo(x + LUDO_UNIT_LENGTH, y);
+            }
+            ctx.stroke();
+            places.push({
+                x: x + 0.5*LUDO_UNIT_LENGTH,
+                y: y + 0.5*LUDO_UNIT_LENGTH,
+                isBit: drawBit
+            });
+        }
+
+        let drawPath = (i, j, color) => {
+            ctx.fillStyle = desaturatedColors[color];
+            ctx.lineWidth = 1;
+            for(let k = 0; k < 6; k++) {
+                ctx.strokeStyle = color;
+                drawSquare(
+                    (i*6 + j*8 + (1 - i - j)*k)*LUDO_UNIT_LENGTH,
+                    (MARGIN_UNITS + 6 + 8*i - 6*j + (j - i)*k)*LUDO_UNIT_LENGTH,
+                    undefined, k == 1
+                );
+                ctx.strokeStyle = color;
+                drawSquare(
+                    (i*6 + j*8 + (1 - i - j)*k + (i - j))*LUDO_UNIT_LENGTH,
+                    (MARGIN_UNITS + 6 + 8*i - 6*j + (j - i)*k + (1 - i - j))*LUDO_UNIT_LENGTH,
+                    k > 0
+                );
+                ctx.strokeStyle = color;
+                drawSquare(
+                    (i*6 + j*8 + (1 - i - j)*k + (i - j)*2)*LUDO_UNIT_LENGTH,
+                    (MARGIN_UNITS + 6 + 8*i - 6*j + (j - i)*k + (1 - i - j)*2)*LUDO_UNIT_LENGTH,
+                    undefined, k == 2
+                );
+            }
+        }
+
+        let drawDestination = (i, j, color) => {
+            ctx.fillStyle = desaturatedColors[color];
+            ctx.beginPath();
+            ctx.moveTo((6 + 3*j)*LUDO_UNIT_LENGTH, (MARGIN_UNITS + 6 + 3*i)*LUDO_UNIT_LENGTH);
+            ctx.lineTo((7.5)*LUDO_UNIT_LENGTH, (MARGIN_UNITS + 7.5)*LUDO_UNIT_LENGTH);
+            ctx.lineTo((6 + 3*i)*LUDO_UNIT_LENGTH, (MARGIN_UNITS + 9 - 3*j)*LUDO_UNIT_LENGTH);
+            ctx.stroke();
+            ctx.fill();
+            
+            places.push({
+                x: (6.75 + .75*i + .75*j)*LUDO_UNIT_LENGTH, 
+                y: (MARGIN_UNITS + 7.5 + .75*i - .75*j)*LUDO_UNIT_LENGTH
+            });
+        }
+
+        let draw = (i, j, color) => {
+            drawHome(i, j, color);
+            drawPath(i, j, color);
+        }
+		
+		let drawGoti = (placeIndex, colorOrPlayerIndex, goti) => {
+			let drawAgainAfter = 0
+			if(goti.tempIndex < goti.currentIndex) {
+				drawAgainAfter = 100;
+				goti.tempIndex++;
+			} else if(goti.tempIndex > goti.currentIndex) {
+				drawAgainAfter = 50;
+				goti.tempIndex--;
+			}
+			
+			let place = places[goti.tempIndex == -1 ? goti.startPlaceIndex : 
+			(goti.atCriticalPosition ? 
+			players[colorOrPlayerIndex].gotis.criticalIndex : 
+			players[colorOrPlayerIndex].gotis.placesIndex[goti.tempIndex])];
+			x = place.x;
+			y = place.y;
+			ctx.fillStyle = COLORS[colorOrPlayerIndex];
+            ctx.beginPath();
+            ctx.arc(x, y, LUDO_UNIT_LENGTH/2 - 1, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            
+            ctx.strokeStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(x, y, LUDO_UNIT_LENGTH/2 - 3, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            goti.x = x;
+            goti.y = y;
+            if(drawAgainAfter > 0) {
+                setTimeout(() => drawLudo(), drawAgainAfter);
+            }
+		}
+		
+		let drawPlayerRank = (playerIndex) => {
+			let i = players[playerIndex].i;
+			let j = players[playerIndex].j;
+			
+			if(players[playerIndex].rank > 0) {
+				ctx.font = FONT_SIZE + "px Verdana";
+				ctx.fillStyle = COLORS[playerIndex];
+				ctx.fillText(
+					players[playerIndex].rank + "", 
+					(9*j + 3 + TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+					(MARGIN_UNITS + 9*i + 3 + TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+				);
+			}
+		}
+        
+        let drawPlayer = () => {
+			if(currentPlayers.length == 1) {
+				makePlayerLal(currentPlayers[0]);
+			}
+		
+            currentPlayers.forEach((index) => {
+                let player = players[index];
+                player.gotis.goti.forEach((goti) => {
+                    let placeIndex = getCurrentPlaceIndexOfGoti(goti);
+                    drawGoti(placeIndex, index, goti);
+                })
+				drawKillCount(index);
+				drawForwardOrBackward(index);
+				drawRoundState(index);
+            });
+			
+			lalPlayers.forEach((index) => {
+				drawKillCount(index);
+				drawPlayerRank(index);
+            });
+        }
+        
+		let resetPasa = (resetSixInARow = false) => {
+			if(!resetSixInARow && currentPasaValue == 6) sixInARow++;
+			else sixInARow = 0;
+			currentPasaValue = 0;
+			currentPasaValue1 = 0;
+			currentPasaValue2 = 0;
+			players[currentPlayerIndex].backward = false;
+			players[currentPlayerIndex].round = false;
+			calcGotiCountOnCurrentPlace();
+			drawLudo();
+			checkBothPasa();
+		}
+		
+        let switchToNextPlayer = () => {
+			players[currentPlayerIndex].backward = false;
+			players[currentPlayerIndex].round = false;
+            currentPlayersCurrentIndex = (currentPlayersCurrentIndex + 1)%currentPlayers.length;
+            currentPlayerIndex = currentPlayers[currentPlayersCurrentIndex];
+			let resetSixInARow = true;
+            resetPasa(resetSixInARow);
+        }
+		
+		let didPointOnGivenPlace = (placeIndex, x, y) => {
+			return Math.abs(places[placeIndex].x - x) < 0.5*LUDO_UNIT_LENGTH &&
+                   Math.abs(places[placeIndex].y - y) < 0.5*LUDO_UNIT_LENGTH;
+		}
+		
+		let kyaForwardBackwardButtonPeClickKiyaGya = (xy) => {
+			if(forwardBackwardPlaces.length == 0) return;
+			return Math.abs(forwardBackwardPlaces[currentPlayersCurrentIndex].x - xy.x) < 0.5*LUDO_UNIT_LENGTH &&
+                   Math.abs(forwardBackwardPlaces[currentPlayersCurrentIndex].y - xy.y) < 0.5*LUDO_UNIT_LENGTH;
+		}
+		
+		let kyaRoundButtonPeClickKiyaGya = (xy) => {
+			if(roundIconPlaces.length == 0) return false;
+			return Math.abs(roundIconPlaces[currentPlayersCurrentIndex].x - xy.x) < 0.5*LUDO_UNIT_LENGTH &&
+                   Math.abs(roundIconPlaces[currentPlayersCurrentIndex].y - xy.y) < 0.5*LUDO_UNIT_LENGTH;
+		}
+        
+		let didClickOnFirstPasa = (x, y) => {
+			return Math.abs((7)*LUDO_UNIT_LENGTH - x) < 0.5*LUDO_UNIT_LENGTH &&
+                   Math.abs((MARGIN_UNITS + 15 + 0.5)*LUDO_UNIT_LENGTH - y) < 0.5*LUDO_UNIT_LENGTH;
+		}
+		
+		let didClickOnSecondPasa = (x, y) => {
+			return Math.abs((8)*LUDO_UNIT_LENGTH - x) < 0.5*LUDO_UNIT_LENGTH &&
+                   Math.abs((MARGIN_UNITS + 15 + 0.5)*LUDO_UNIT_LENGTH - y) < 0.5*LUDO_UNIT_LENGTH;
+		}
+		
+		let getCurrentPlaceIndexOfGoti = (goti, playerIndex = currentPlayerIndex) => {
+			return goti.currentIndex == -1 ? goti.startPlaceIndex: (goti.atCriticalPosition ? 
+			players[playerIndex].gotis.criticalIndex : 
+			players[playerIndex].gotis.placesIndex[goti.currentIndex]);
+		}
+		
+		let stepForwardOrBackward = (goti) => {
+			let maarDiya = false;
+			let oldPlaceIndex = (goti.atCriticalPosition ? 
+			players[currentPlayerIndex].gotis.criticalIndex : 
+			players[currentPlayerIndex].gotis.placesIndex[goti.currentIndex]);
+			
+			goti.x = places[oldPlaceIndex].x;
+			goti.y = places[oldPlaceIndex].y;
+			
+			if(players[currentPlayerIndex].backward) {
+				goti.currentIndex -= currentPasaValue;
+			} else {
+				let moveRound = ((goti.currentIndex < MAX_ROUND_INDEX - 1) && players[currentPlayerIndex].round) || goti.atCriticalPosition;
+				goti.currentIndex += currentPasaValue;
+				if(moveRound) {
+					goti.currentIndex %= MAX_ROUND_INDEX;
+					if(goti.currentIndex == MAX_ROUND_INDEX - 1) {
+						goti.atCriticalPosition = true;
+					} else {
+						goti.atCriticalPosition = false;
+					}
+				}
+			}
+			
+			let newPlaceIndex = (goti.atCriticalPosition)? 
+			players[currentPlayerIndex].gotis.criticalIndex : 
+			players[currentPlayerIndex].gotis.placesIndex[goti.currentIndex];
+			
+			if(!places[newPlaceIndex].isBit) {
+				for(let j = 0; j < 4; j++) {
+					if(j == currentPlayerIndex) {
+						continue;
+					}
+					let placeCount = 0;
+					let gotiIndex = -1;
+					for(let k = 0; k < 4; k++) {
+						let tempPlaceIndex = (players[j].gotis.goti[k].atCriticalPosition)? 
+							players[j].gotis.criticalIndex : 
+							players[j].gotis.placesIndex[players[j].gotis.goti[k].currentIndex];
+						if(newPlaceIndex == tempPlaceIndex) {
+							placeCount++;
+							gotiIndex = k;
+						}
+					}
+					if(placeCount == 1) {
+						players[j].gotis.goti[gotiIndex].currentIndex = -1;
+						maarDiya = true;
+						
+						players[j].victim++;
+						players[currentPlayerIndex].killer++;
+					}
+				}
+			}
+			
+			if(currentPasaValue != 6 && goti.currentIndex != 56 && !maarDiya) {
+				switchToNextPlayer();
+			} else {
+				resetPasa();
+			}
+		}
+		
+		let doesAnyMovableGotiExist = (pasaValue) => {
+			for(let i = 0; i < players[currentPlayerIndex].gotis.goti.length; i++) {
+                let goti = players[currentPlayerIndex].gotis.goti[i];
+                let placeIndex = getCurrentPlaceIndexOfGoti(goti);
+                if(placeIndex == goti.startPlaceIndex) {
+					if(pasaValue == 6 && !players[currentPlayerIndex].backward) return true;
+					else continue;
+				}
+				if(!players[currentPlayerIndex].backward && 
+				!players[currentPlayerIndex].round && 
+				(goti.currentIndex == 56 || goti.currentIndex + pasaValue > 56)) {
+                    continue;
+                }
+				if(players[currentPlayerIndex].backward && (goti.currentIndex == -1 || goti.currentIndex - pasaValue < -1)) {
+                    continue;
+                }
+                
+                return true;
+			}
+			return false;
+		}
+		
+		let getAnyGotiOfOnlySingleTypeInField = (pasaValue) => {
+			let placeIndex1;
+			let goti1;
+			for(let i = 0; i < players[currentPlayerIndex].gotis.goti.length; i++) {
+                let goti = players[currentPlayerIndex].gotis.goti[i];
+                let placeIndex = getCurrentPlaceIndexOfGoti(goti);
+                if(placeIndex == goti.startPlaceIndex) {
+					if(pasaValue == 6 && !players[currentPlayerIndex].backward) return;
+					else continue;
+				}
+				if((goti.currentIndex == 56 || goti.currentIndex + pasaValue > 56) && 
+				!players[currentPlayerIndex].backward && !players[currentPlayerIndex].round) {
+                    continue;
+                }
+				if((goti.currentIndex == -1 || goti.currentIndex - pasaValue < -1) && players[currentPlayerIndex].backward) {
+                    continue;
+                }
+                
+                if(goti1) {
+					if(placeIndex != placeIndex1) return;
+				} else {
+					goti1 = goti;
+					placeIndex1 = placeIndex;
+				}
+			}
+			return goti1;
+		}
+		
+		let getXY = (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+			
+			return {x: x, y: y};
+		}
+		
+		let handleMouseMove = (event) => {
+            xy = getXY(event);
+			calcGotiCountOnCurrentPlace();
+		}
+		
+		let calcGotiCountOnCurrentPlace = () => {
+			let gotiCountOnCurrentPlace1 = [0, 0, 0, 0];
+			
+			for(let i = 0; i < currentPlayers.length; i++) {
+				let playerIndex = currentPlayers[i];
+				for(let j = 0; j < players[playerIndex].gotis.goti.length; j++) {
+					let goti = players[playerIndex].gotis.goti[j];
+					let placeIndex = getCurrentPlaceIndexOfGoti(goti, playerIndex);
+					
+					if(didPointOnGivenPlace(placeIndex, xy.x, xy.y)) {
+						gotiCountOnCurrentPlace1[playerIndex]++;
+					}
+				}
+			}
+			
+			let draw = false;
+			for(let i = 0; i < gotiCountOnCurrentPlace1.length; i++) {
+				if(gotiCountOnCurrentPlace[i] != gotiCountOnCurrentPlace1[i]) draw = true;
+				gotiCountOnCurrentPlace[i] = gotiCountOnCurrentPlace1[i];
+			}
+			if(draw) drawLudo();
+		}
+		
+		let resetGotiCountOnCurrentPlace = (event) => {
+            gotiCountOnCurrentPlace = [0, 0, 0, 0];
+			drawLudo();
+		}
+		
+        let handleMouseDown = (event) => {
+			xy = getXY(event);
+			checkBothPasa();
+		}
+		
+		let checkBothPasa = () => {
+			if(currentPlayers.length <= 1) {
+				drawLudo();
+				return;
+			}
+			if(currentPasaValue1 == 0 || currentPasaValue2 == 0) {
+				currentPasaValue1 = Math.floor(Math.random() * 6) + 1;
+				currentPasaValue2 = Math.floor(Math.random() * 6) + 1;
+				
+				if(currentPasaValue2 > currentPasaValue1) {
+					let tempPasaValue = currentPasaValue2;
+					currentPasaValue2 = currentPasaValue1;
+					currentPasaValue1 = tempPasaValue;
+				}
+				currentPasaValue = currentPasaValue1;
+				drawLudo();
+				return;
+			}
+			checkCurrentPasa();
+		}
+			
+		let checkCurrentPasa = () => {
+			if(didClickOnSecondPasa(xy.x, xy.y) && currentPasaValue != currentPasaValue2) {
+				currentPasaValue = currentPasaValue2;
+				drawLudo();
+				return;
+			}
+			
+			if(didClickOnFirstPasa(xy.x, xy.y) && currentPasaValue != currentPasaValue1) {
+				currentPasaValue = currentPasaValue1;
+				drawLudo();
+				return;
+			}
+			
+			if(kyaForwardBackwardButtonPeClickKiyaGya(xy)) {
+				players[currentPlayerIndex].backward = !players[currentPlayerIndex].backward;
+				drawLudo();
+				return;
+			}
+			
+			if(kyaRoundButtonPeClickKiyaGya(xy)) {
+				players[currentPlayerIndex].round = !players[currentPlayerIndex].round;
+				drawLudo();
+				return;
+			}
+			
+			if(!doesAnyMovableGotiExist(currentPasaValue)) {
+				switchToNextPlayer();
+				return;
+			}
+			
+			if(currentPasaValue == 6 && (sixInARow + 1) == 3) {
+				switchToNextPlayer();
+				return;
+			}
+			
+			let goti = getAnyGotiOfOnlySingleTypeInField(currentPasaValue);
+			if(goti) {
+				stepForwardOrBackward(goti);
+				return;
+			}
+            
+			determineAbhiChalneWalaGoti();
+		}
+		
+		let determineAbhiChalneWalaGoti = () => {
+            let extremeGotiCount = 0;
+			let abhiChalneWalaGoti;
+			let aGotiInHome = undefined;
+            for(let i = 0; i < players[currentPlayerIndex].gotis.goti.length; i++) {
+                goti = players[currentPlayerIndex].gotis.goti[i];
+                placeIndex = getCurrentPlaceIndexOfGoti(goti);
+                if(placeIndex == goti.startPlaceIndex) {
+                    extremeGotiCount++;
+					aGotiInHome = goti;
+                } else if(goti.currentIndex == 56) {
+                    extremeGotiCount++;
+                    continue;
+                } else if(
+					(!players[currentPlayerIndex].backward && !players[currentPlayerIndex].round && goti.currentIndex + currentPasaValue > 56) ||
+					(players[currentPlayerIndex].backward && goti.currentIndex - currentPasaValue < -1)
+				) {
+                    extremeGotiCount++;
+                    continue;
+                }
+                
+                if(didPointOnGivenPlace(placeIndex, xy.x, xy.y)) {
+					if(placeIndex == goti.startPlaceIndex) {
+						if(!players[currentPlayerIndex].backward && currentPasaValue == 6) {
+							goti.currentIndex++;
+							resetPasa();
+							return;
+						} else {
+							continue;
+						}
+					}
+					abhiChalneWalaGoti = goti;
+					break;
+				}
+			}
+			
+			kyaAbhiChalneKeLiyeKoiGotiHai(abhiChalneWalaGoti, extremeGotiCount, aGotiInHome);
+		}
+		
+        let kyaAbhiChalneKeLiyeKoiGotiHai = (abhiChalneWalaGoti, extremeGotiCount, aGotiInHome) => {
+			if(abhiChalneWalaGoti) {
+				stepForwardOrBackward(abhiChalneWalaGoti);
+				return;
+            }
+			
+			if(extremeGotiCount == 4) {
+				if(aGotiInHome && currentPasaValue == 6) {
+					if(!players[currentPlayerIndex].backward) {
+						aGotiInHome.currentIndex++;
+						resetPasa();
+					} else {
+						drawLudo();
+					}
+					return;
+				}
+				switchToNextPlayer();
+				return;
+			}
+        }
+		
+		let drawGotiCountOnCurrentPlace = () => {
+			for(let i = 0; i < 4; i++) {
+				ctx.fillStyle = ctx.strokeStyle = COLORS[i];
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.arc(
+					(6 + i)*LUDO_UNIT_LENGTH, 
+					(MARGIN_UNITS - 0.5)*LUDO_UNIT_LENGTH, LUDO_UNIT_LENGTH/2 - 1, 0, 2 * Math.PI);
+				ctx.stroke();
+				
+				if(gotiCountOnCurrentPlace[i] > 0) {
+					ctx.fill();
+					
+					ctx.font = FONT_SIZE + "px Verdana";
+					ctx.fillStyle = 'white';
+					ctx.fillText(
+						gotiCountOnCurrentPlace[i] + "", 
+						(6 + i + TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+						(MARGIN_UNITS - 0.5 + + TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+					);
+				}
+			}
+		}
+        
+        let drawPasa = () => {
+			//First Pasa
+			ctx.fillStyle = ctx.strokeStyle = COLORS[currentPlayerIndex];
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(
+				(7)*LUDO_UNIT_LENGTH, 
+				(MARGIN_UNITS + 15 + 0.5)*LUDO_UNIT_LENGTH, LUDO_UNIT_LENGTH/2 - 1, 0, 2 * Math.PI);
+			ctx.stroke();
+            
+            if(currentPasaValue1 > 0) {
+				if(currentPasaValue == currentPasaValue1) ctx.fill();
+				
+                ctx.font = FONT_SIZE + "px Verdana";
+                ctx.fillStyle = currentPasaValue == currentPasaValue1 ? 'white':COLORS[currentPlayerIndex];
+                ctx.fillText(
+                    currentPasaValue1 + "", 
+                    (7 + TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+                    (MARGIN_UNITS + 15 + 0.5 + TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+                );
+            }
+			
+			//Second Pasa
+			ctx.fillStyle = ctx.strokeStyle = COLORS[currentPlayerIndex];
+			ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(
+                (8)*LUDO_UNIT_LENGTH, 
+                (MARGIN_UNITS + 15 + 0.5)*LUDO_UNIT_LENGTH, LUDO_UNIT_LENGTH/2 - 1, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            if(currentPasaValue2 > 0) {
+				if(currentPasaValue == currentPasaValue2) ctx.fill();
+                ctx.font = FONT_SIZE + "px Verdana";
+                ctx.fillStyle = currentPasaValue == currentPasaValue2 ? 'white':COLORS[currentPlayerIndex];
+                ctx.fillText(
+                    currentPasaValue2 + "", 
+                    (8 + TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+                    (MARGIN_UNITS + 15 + 0.5 + TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+                );
+            }
+        }
+        
+        let markCurrentGotis = () => {
+			if(currentPasaValue == 0 || sixInARow == 3) return;
+			
+            let placesToMark = {};
+            let gotiCountInHome = 0;
+            for(let i = 0; i < players[currentPlayerIndex].gotis.goti.length; i++) {
+                let goti = players[currentPlayerIndex].gotis.goti[i];
+                let placeIndex = getCurrentPlaceIndexOfGoti(goti);
+                if(placesToMark[placeIndex] === undefined) {
+                    placesToMark[placeIndex] = {
+                        gotiCount: 1,
+                        isHome: (placeIndex == goti.startPlaceIndex),
+                        isLalHoneWala:	!players[currentPlayerIndex].backward &&
+										!players[currentPlayerIndex].round &&
+										((goti.currentIndex + currentPasaValue) > 56),
+						isBeyondLimit: players[currentPlayerIndex].backward&&((goti.currentIndex - currentPasaValue) < -1)
+                    }
+                } else {
+                    placesToMark[placeIndex].gotiCount += 1;
+                }
+                if(placeIndex == goti.startPlaceIndex) {
+                    gotiCountInHome++;
+                }
+            }
+            if(gotiCountInHome == 4 && currentPasaValue != 6) {
+                return;
+            }
+            for (const [placeIndex, place] of Object.entries(placesToMark)) {
+                if((place.isHome && currentPasaValue != 6) || place.isLalHoneWala || place.isBeyondLimit) continue;
+				ctx.fillStyle = 'white';
+				fillCircle(places[placeIndex].x, places[placeIndex].y);
+                ctx.font = FONT_SIZE + "px Verdana";
+                ctx.fillStyle = COLORS[currentPlayerIndex];
+                ctx.fillText(
+                    place.gotiCount + "", 
+                    places[placeIndex].x + (TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+                    places[placeIndex].y + (TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+                );
+            }
+        }
+        
+        let markLalGotis = () => {
+            
+            for(let currentPlayersIndex = 0; currentPlayersIndex < currentPlayers.length; currentPlayersIndex++) {
+                playerIndex = currentPlayers[currentPlayersIndex];
+                let placeIndex = -1;
+                let count = 0;
+                for(let gotiIndex = 0; gotiIndex < 4; gotiIndex++) {
+                    let goti = players[playerIndex].gotis.goti[gotiIndex];
+                    if(goti.currentIndex == 56) {
+                        count++;
+                        placeIndex = players[playerIndex].gotis.placesIndex[goti.currentIndex];
+                    }  
+                }
+                if(count > 0) {
+                    ctx.font = FONT_SIZE + "px Verdana";
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(
+                        count + "", 
+                        places[placeIndex].x + (TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+                        places[placeIndex].y + (TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+                    );
+                }
+                if(count == 4) {
+                    makePlayerLal(playerIndex);
+                }
+            }
+        }
+		
+		let makePlayerLal = (playerIndex) => {
+			const index = currentPlayers.indexOf(playerIndex);
+			if (index > -1) {
+			  currentPlayers.splice(index, 1);
+			  lalPlayers.push(playerIndex);
+			}
+			lalPlayersCount++;
+			players[playerIndex].rank = lalPlayersCount;
+		}
+
+        let drawLudo = () => {
+			places = [];
+			forwardBackwardPlaces = [];
+			roundIconPlaces = [];
+			
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+			ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0,canvas.width, canvas.height );
+			
+            draw(1, 0, COLORS[0]);
+            draw(0, 0, COLORS[1]);
+            draw(0, 1, COLORS[2]);
+            draw(1, 1, COLORS[3]);
+            
+            drawDestination(1, 0, COLORS[0]);
+            drawDestination(0, 0, COLORS[1]);
+            drawDestination(0, 1, COLORS[2]);
+            drawDestination(1, 1, COLORS[3]);
+            
+            drawPlayer();
+            drawPasa();
+			drawGotiCountOnCurrentPlace();
+            markCurrentGotis();
+            markLalGotis();
+        }
+        
+        let init = () => {
+            canvas = document.getElementById("myCanvas");
+			LUDO_UNIT_LENGTH = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth)/15;
+			FONT_SIZE = LUDO_UNIT_LENGTH*8/9;
+			const CANVAS_HEIGHT = LUDO_UNIT_LENGTH*(15 + 2*MARGIN_UNITS);
+            canvas.setAttribute("width", LUDO_UNIT_LENGTH*15);
+            canvas.setAttribute("height", CANVAS_HEIGHT);
+
+            ctx = canvas.getContext("2d");
+            
+            canvas.addEventListener('mousedown', handleMouseDown);
+			canvas.addEventListener('mouseup', calcGotiCountOnCurrentPlace);
+			canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseout', resetGotiCountOnCurrentPlace);
+            drawLudo();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
