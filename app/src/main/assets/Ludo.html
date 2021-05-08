@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html>
-<style>
-	body { margin:0; }
-</style>
-<body>
-    <canvas 
-        id="myCanvas"
-        style="border:1px solid #000000;">
-        Play LUDO on your desktop browser!
-    </canvas>
-    <script>
+<head>
+	<style>
+		body { margin:0; }
+	</style>
+
+	<script>
         let LUDO_UNIT_LENGTH = 45;
 		let FONT_SIZE = 40;
         const MARGIN_UNITS = 1;
@@ -24,6 +20,7 @@
             green: "#206020"
         };
         
+		let pauseGame = false;
         let currentPlayers = [0, 2];
 		let lalPlayers = [];
 		let lalPlayersCount = 0;
@@ -40,6 +37,8 @@
         let currentPlayersCurrentIndex = 0;
 		let gotiCountOnCurrentPlace = [0, 0, 0, 0];
 		let xy;
+		let audio;
+		
         let players = [
             {
 				rank: 0,
@@ -198,6 +197,12 @@
                 }
             },
         ];
+		
+		let play = (filename = "fantasy.mp3") => {
+			audio.pause();
+			audio.src = filename;
+			audio.play().catch(function() {});
+		}
 
         let drawCircle = (x, y, radius = (LUDO_UNIT_LENGTH/2 - 3), placesToPush) => {
             ctx.beginPath();
@@ -375,6 +380,10 @@
 		
 		let drawGoti = (placeIndex, colorOrPlayerIndex, goti) => {
 			let drawAgainAfter = 0
+			
+			if(goti.tempIndex != goti.currentIndex) {
+				play("step.mp3");
+			}
 			if(goti.tempIndex < goti.currentIndex) {
 				drawAgainAfter = 100;
 				goti.tempIndex++;
@@ -402,6 +411,7 @@
             
             goti.x = x;
             goti.y = y;
+			
             if(drawAgainAfter > 0) {
                 setTimeout(() => drawLudo(), drawAgainAfter);
             }
@@ -454,7 +464,7 @@
 			players[currentPlayerIndex].round = false;
 			calcGotiCountOnCurrentPlace();
 			drawLudo();
-			checkBothPasa();
+			//checkBothPasa();
 		}
 		
         let switchToNextPlayer = () => {
@@ -481,6 +491,11 @@
 			if(roundIconPlaces.length == 0) return false;
 			return Math.abs(roundIconPlaces[currentPlayersCurrentIndex].x - xy.x) < 0.5*LUDO_UNIT_LENGTH &&
                    Math.abs(roundIconPlaces[currentPlayersCurrentIndex].y - xy.y) < 0.5*LUDO_UNIT_LENGTH;
+		}
+		
+		let kyaPlayOrPauseButtonPeClickKiyaGya = (xy) => {
+			return Math.abs((0.5)*LUDO_UNIT_LENGTH - xy.x) < 0.5*LUDO_UNIT_LENGTH &&
+                   Math.abs((0.5)*LUDO_UNIT_LENGTH - xy.y) < 0.5*LUDO_UNIT_LENGTH;
 		}
         
 		let didClickOnFirstPasa = (x, y) => {
@@ -546,18 +561,22 @@
 					if(placeCount == 1) {
 						players[j].gotis.goti[gotiIndex].currentIndex = -1;
 						maarDiya = true;
+						play("kill.mp3");
 						
 						players[j].victim++;
 						players[currentPlayerIndex].killer++;
 					}
 				}
 			}
-			
-			if(currentPasaValue != 6 && goti.currentIndex != 56 && !maarDiya) {
-				switchToNextPlayer();
-			} else {
-				resetPasa();
-			}
+			setTimeout(() => {
+				pauseGame = false;
+				if(currentPasaValue != 6 && goti.currentIndex != 56 && !maarDiya) {
+					switchToNextPlayer();
+				} else {
+					resetPasa();
+				}
+			}, maarDiya ? 2000 : 0);
+			pauseGame = true;
 		}
 		
 		let doesAnyMovableGotiExist = (pasaValue) => {
@@ -653,6 +672,14 @@
 		
         let handleMouseDown = (event) => {
 			xy = getXY(event);
+			if(kyaPlayOrPauseButtonPeClickKiyaGya(xy)) {
+				pauseGame = !pauseGame;
+				play();
+				drawLudo();
+				return;
+			}
+			if(pauseGame) return;
+			play();
 			checkBothPasa();
 		}
 		
@@ -672,6 +699,7 @@
 				}
 				currentPasaValue = currentPasaValue1;
 				drawLudo();
+				play("roll.mp3");
 				return;
 			}
 			checkCurrentPasa();
@@ -779,6 +807,7 @@
 				switchToNextPlayer();
 				return;
 			}
+			play("error.mp3");
         }
 		
 		let drawGotiCountOnCurrentPlace = () => {
@@ -803,6 +832,25 @@
 					);
 				}
 			}
+		}
+		
+		let drawPlayOrPause = () => {
+			ctx.fillStyle = ctx.strokeStyle = "black";
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(
+				(0.5)*LUDO_UNIT_LENGTH, 
+				(MARGIN_UNITS - 0.5)*LUDO_UNIT_LENGTH, LUDO_UNIT_LENGTH/2 - 1, 0, 2 * Math.PI);
+			ctx.stroke();
+			ctx.fill();
+				
+			ctx.font = FONT_SIZE + "px Verdana";
+			ctx.fillStyle = 'white';
+			ctx.fillText(
+				pauseGame ? "▶":"🛑", 
+				(0.5 + TEXT_X_SHIFT)*LUDO_UNIT_LENGTH, 
+				(MARGIN_UNITS - 0.5 + + TEXT_Y_SHIFT)*LUDO_UNIT_LENGTH
+			);
 		}
         
         let drawPasa = () => {
@@ -918,6 +966,7 @@
         }
 		
 		let makePlayerLal = (playerIndex) => {
+			play();
 			const index = currentPlayers.indexOf(playerIndex);
 			if (index > -1) {
 			  currentPlayers.splice(index, 1);
@@ -950,6 +999,7 @@
             drawPlayer();
             drawPasa();
 			drawGotiCountOnCurrentPlace();
+			drawPlayOrPause();
             markCurrentGotis();
             markLalGotis();
         }
@@ -968,10 +1018,24 @@
 			canvas.addEventListener('mouseup', calcGotiCountOnCurrentPlace);
 			canvas.addEventListener('mousemove', handleMouseMove);
             canvas.addEventListener('mouseout', resetGotiCountOnCurrentPlace);
+			
+			audio = document.getElementById("audio");
+			play();
+			
             drawLudo();
         }
-        
-        init();
+        //init();
     </script>
+
+	<script>
+	</script>
+</head>	
+<body onload="init()">
+	<audio id="audio" src="fantasy.mp3"></audio>
+    <canvas 
+        id="myCanvas"
+        style="border:1px solid #000000;">
+        Play LUDO on your desktop browser!
+    </canvas>
 </body>
 </html>

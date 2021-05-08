@@ -1,0 +1,183 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- init -->
+<script>
+	const store = window.localStorage;
+	let audio;
+	
+	let init = () => {
+		audio = document.getElementById("audio");
+	}
+</script>
+
+<!-- Alerts -->
+<script>
+	const ALERT_ERROR_CLASS_NAME = "alert-danger";
+	const ALERT_SUCCESS_CLASS_NAME = "alert-success";
+	const ALERT_INFO_CLASS_NAME = "alert-info";
+	const ALERT_WARNING_CLASS_NAME = "alert-warning";
+	
+	let play = (filename = "step.mp3") => {
+		audio.pause();
+		audio.src = filename;
+		audio.play().catch(function() {});
+	}
+	
+	let alert = (msg, alertClassName = ALERT_ERROR_CLASS_NAME) => {
+		play();
+		$("#alert").addClass("show");
+		$("#alert").removeClass(ALERT_ERROR_CLASS_NAME);
+		$("#alert").removeClass(ALERT_SUCCESS_CLASS_NAME);
+		$("#alert").removeClass(ALERT_INFO_CLASS_NAME);
+		$("#alert").removeClass(ALERT_WARNING_CLASS_NAME);
+		$("#alert").addClass(alertClassName);
+		$("#alert span").text(msg);
+	}
+</script>
+
+<!-- prototype -->
+<script>
+	String.prototype.pick = function(min, max) {
+		var n, chars = '';
+
+		if (typeof max === 'undefined') {
+			n = min;
+		} else {
+			n = min + Math.floor(Math.random() * (max - min + 1));
+		}
+
+		for (var i = 0; i < n; i++) {
+			chars += this.charAt(Math.floor(Math.random() * this.length));
+		}
+
+		return chars;
+	};
+
+	String.prototype.shuffle = function() {
+		var array = this.split('');
+		var tmp, current, top = array.length;
+
+		if (top) while (--top) {
+			current = Math.floor(Math.random() * (top + 1));
+			tmp = array[current];
+			array[current] = array[top];
+			array[top] = tmp;
+		}
+
+		return array.join('');
+	};
+</script>
+
+<!-- master password -->
+<script>
+	const MASTER_PASS_NAME = "masterPass";
+	
+	let isValidPassword = (pass) => {
+		if(!pass) return false;
+		
+		pass = pass.trim();
+		if(!pass) return false;
+		
+		return true;
+	}
+	
+	let updateMasterPassword = (masterPass, oldMasterPass) => {
+		if(!isValidPassword(masterPass)) {
+			alert("Invalid Password!");
+			return false;
+		}
+	
+		let savedMasterPass = store.getItem(MASTER_PASS_NAME);
+		if(savedMasterPass && savedMasterPass != oldMasterPass) {
+			alert("Wrong Password!");
+			return false;
+		}
+		
+		updateOtherPasswords(oldMasterPass, masterPass);
+		
+		store.setItem(MASTER_PASS_NAME, masterPass);
+		alert("Successful!", ALERT_SUCCESS_CLASS_NAME);
+		return true;
+	}
+	
+	let saveMasterPassword = (masterPass) => {
+		return updateMasterPassword(masterPass, "");
+	}
+</script>
+
+<!-- generate password -->
+<script>
+	let generatePassword = (min, max) => {
+		if(!min) {
+			min = 6;
+			max = 8;
+		}
+		if(!max) max = min;
+		if(max < min) {
+			max = min;
+		}
+		let specials = '!@#$%^&*()_+{}:"<>?\|[];\',./`~';
+		let lowercase = 'abcdefghijklmnopqrstuvwxyz';
+		let uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		let numbers = '0123456789';
+
+		let all = specials + lowercase + uppercase + numbers;
+
+		let password = '';
+		password += specials.pick(1);
+		password += lowercase.pick(1);
+		password += uppercase.pick(1);
+		password += numbers.pick(1);
+		password += all.pick(min - 4, max - 4);
+		password = password.shuffle();
+		
+		return password;
+	}
+</script>
+
+<!-- pass length -->
+<script>
+	const PASS_MIN_LENGTH_NAME = "passMinLength";
+	const PASS_MAX_LENGTH_NAME = "passMaxLength";
+	
+	let storePassLength = (min, max) => {
+		if(!max) max = min;
+		store.setItem(PASS_MIN_LENGTH_NAME, min);
+		store.setItem(PASS_MAX_LENGTH_NAME, max);
+	}
+	
+	let generatePasswordOfStoredLength = () => {
+		let min = store.getItem(PASS_MIN_LENGTH_NAME);
+		let max = store.getItem(PASS_MAX_LENGTH_NAME);
+		return generatePassword(min, max);
+	}
+</script>
+
+<script>
+	//https://stackoverflow.com/a/54026460/4675501
+	let encryptPassword = (pass) => {
+		
+	}
+</script>
+
+<script>
+	let updateOtherPasswords = (oldMasterPass, masterPass) => {
+		
+	}
+</script>
+</head>
+<body onload="init()">
+	<audio id="audio" src="step.mp3"></audio>
+	<div class="alert alert-success alert-dismissible fade" id="alert">
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		<span>Success!</span>
+	</div>
+</body>
+</html>
