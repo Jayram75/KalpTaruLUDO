@@ -14,6 +14,7 @@
 	
 	let init = () => {
 		audio = document.getElementById("audio");
+		initPasswords();
 	}
 </script>
 
@@ -100,7 +101,7 @@
 			return false;
 		}
 		
-		updateOtherPasswords(oldMasterPass, masterPass);
+		updateAllPasswords(oldMasterPass, masterPass);
 		
 		store.setItem(MASTER_PASS_NAME, masterPass);
 		alert("Successful!", ALERT_SUCCESS_CLASS_NAME);
@@ -160,15 +161,54 @@
 	}
 </script>
 
+<!-- encryption -->
 <script>
 	//https://stackoverflow.com/a/54026460/4675501
-	let encryptPassword = (pass) => {
-		
+	const cipher = salt => {
+		const textToChars = text => text.split('').map(c => c.charCodeAt(0));
+		const byteHex = n => ("0" + Number(n).toString(16)).substr(-2);
+		const applySaltToChar = code => textToChars(salt).reduce((a,b) => a ^ b, code);
+
+		return text => text.split('')
+			.map(textToChars)
+			.map(applySaltToChar)
+			.map(byteHex)
+			.join('');
+	}
+
+	const decipher = salt => {
+		const textToChars = text => text.split('').map(c => c.charCodeAt(0));
+		const applySaltToChar = code => textToChars(salt).reduce((a,b) => a ^ b, code);
+		return encoded => encoded.match(/.{1,2}/g)
+			.map(hex => parseInt(hex, 16))
+			.map(applySaltToChar)
+			.map(charCode => String.fromCharCode(charCode))
+			.join('');
+	}
+	
+	let encryptPassword = (pass, salt) => {
+		if(!salt) salt = store.getItem(MASTER_PASS_NAME);
+		return cipher(salt)(pass);
+	}
+	
+	let decryptPassword = (encPass, salt) => {
+		if(!salt) salt = store.getItem(MASTER_PASS_NAME);
+		return decipher(salt)(encPass);
 	}
 </script>
 
 <script>
-	let updateOtherPasswords = (oldMasterPass, masterPass) => {
+	const PASSWORD_LIST_NAME = "passwordList";
+	let passwords;
+
+	let initPasswords = () => {
+		let passwordList = store.getItem(PASSWORD_LIST_NAME);
+		
+		if(!passwordList) passwords = [];
+		else passwords = JSON.parse(passwordList);
+	}
+	
+	let updateAllPasswords = (oldMasterPass, masterPass) => {
 		
 	}
 </script>
