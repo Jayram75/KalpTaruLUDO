@@ -14,7 +14,7 @@
 	
 	let init = () => {
 		audio = document.getElementById("audio");
-		initPasswords();
+		initLoginDetails();
 	}
 </script>
 
@@ -197,19 +197,75 @@
 	}
 </script>
 
+<!-- Login details -->
 <script>
-	const PASSWORD_LIST_NAME = "passwordList";
-	let passwords;
+	const LOGIN_DETAILS_NAME = "loginDetails";
+	const PASSWORD_NAME = "password";
+	const USERNAME_NAME = "username";
+	const LOGIN_TITLE_NAME = "loginTitle";
+	let loginDetails;
 
-	let initPasswords = () => {
-		let passwordList = store.getItem(PASSWORD_LIST_NAME);
+	let initLoginDetails = () => {
+		let loginDetailList = store.getItem(LOGIN_DETAILS_NAME);
 		
-		if(!passwordList) passwords = [];
-		else passwords = JSON.parse(passwordList);
+		if(!loginDetailList) loginDetails = [];
+		else loginDetails = JSON.parse(loginDetailList);
+	}
+	
+	let saveLoginDetails = () => {
+		store.setItem(LOGIN_DETAILS_NAME, JSON.stringify(loginDetails));
 	}
 	
 	let updateAllPasswords = (oldMasterPass, masterPass) => {
+		for(let loginDetail of loginDetails) {
+			oldPassword = decryptPassword(oldMasterPass, loginDetail[PASSWORD_NAME]);
+			loginDetail[PASSWORD_NAME] = encryptPassword(masterPass, oldPassword);
+		}
+		saveLoginDetails();
+	}
+	
+	let addNewLoginDetail = (loginTitle, username, password) => {
+		let loginDetail = {};
+		loginDetail[LOGIN_TITLE_NAME] = loginTitle;
+		loginDetail[USERNAME_NAME] = username;
 		
+		let encryptedPassword = encryptPassword(password);
+		loginDetail[PASSWORD_NAME] = encryptedPassword;
+		
+		loginDetails.push(loginDetail);
+		saveLoginDetails();
+	}
+	
+	let updatePassword = (loginDetail, password) => {
+		let encryptedPassword = encryptPassword(password);
+		loginDetail[PASSWORD_NAME] = encryptedPassword;
+		saveLoginDetails();
+	}
+	
+	let updateUsername = (loginDetail, username) => {
+		loginDetail[USERNAME_NAME] = username;
+		saveLoginDetails();
+	}
+	
+	let updateLoginTitle = (loginDetail, loginTitle) => {
+		loginDetail[LOGIN_TITLE_NAME] = loginTitle;
+		saveLoginDetails();
+	}
+	
+	let copyText = (text) => {
+		window.clipboardData.setData('Text', text);
+	}
+	
+	let searchLoginDetail = (toSearch) => {
+		let results = [];
+
+		for(let loginDetail of loginDetails) {
+			if(loginDetail[LOGIN_TITLE_NAME].indexOf(toSearch) != -1) {
+				results.push(loginDetail);
+			}
+		}
+
+		return results;
 	}
 </script>
 </head>
