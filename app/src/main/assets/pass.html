@@ -152,6 +152,7 @@
 		if(!max) max = min;
 		store.setItem(PASS_MIN_LENGTH_NAME, min);
 		store.setItem(PASS_MAX_LENGTH_NAME, max);
+		return true;
 	}
 	
 	let generatePasswordOfStoredLength = () => {
@@ -203,6 +204,7 @@
 	const PASSWORD_NAME = "password";
 	const USERNAME_NAME = "username";
 	const LOGIN_TITLE_NAME = "loginTitle";
+	const ORIGINAL_OBJ_NAME = "originalObject";
 	let loginDetails;
 
 	let initLoginDetails = () => {
@@ -234,38 +236,52 @@
 		
 		loginDetails.push(loginDetail);
 		saveLoginDetails();
+		return true;
 	}
 	
 	let updatePassword = (loginDetail, password) => {
 		let encryptedPassword = encryptPassword(password);
 		loginDetail[PASSWORD_NAME] = encryptedPassword;
 		saveLoginDetails();
+		return password;
 	}
 	
 	let updateUsername = (loginDetail, username) => {
 		loginDetail[USERNAME_NAME] = username;
 		saveLoginDetails();
+		return username;
 	}
 	
 	let updateLoginTitle = (loginDetail, loginTitle) => {
 		loginDetail[LOGIN_TITLE_NAME] = loginTitle;
 		saveLoginDetails();
+		return loginTitle;
 	}
 	
 	let copyText = (text) => {
 		window.clipboardData.setData('Text', text);
+		return text;
 	}
 	
 	let searchLoginDetail = (toSearch) => {
 		let results = [];
 
 		for(let loginDetail of loginDetails) {
-			if(loginDetail[LOGIN_TITLE_NAME].indexOf(toSearch) != -1) {
-				results.push(loginDetail);
+			if(loginDetail[LOGIN_TITLE_NAME].toLowerCase().indexOf(toSearch.toLowerCase().trim()) != -1) {
+				let loginDetailCopy = {...loginDetail};
+				loginDetailCopy[PASSWORD_NAME] = decryptPassword(loginDetailCopy[PASSWORD_NAME]);
+				loginDetailCopy[ORIGINAL_OBJ_NAME] = loginDetail;
+				results.push(loginDetailCopy);
 			}
 		}
 
 		return results;
+	}
+	
+	let deleteAll = () => {
+		store.setItem(LOGIN_DETAILS_NAME, "");
+		store.setItem(MASTER_PASS_NAME, "");
+		return true;
 	}
 </script>
 </head>
