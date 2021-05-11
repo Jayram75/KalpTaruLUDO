@@ -10,12 +10,6 @@
 <!-- init -->
 <script>
 	const store = window.localStorage;
-	let audio;
-	
-	let init = () => {
-		audio = document.getElementById("audio");
-		initLoginDetails();
-	}
 </script>
 
 <!-- Alerts -->
@@ -24,6 +18,8 @@
 	const ALERT_SUCCESS_CLASS_NAME = "alert-success";
 	const ALERT_INFO_CLASS_NAME = "alert-info";
 	const ALERT_WARNING_CLASS_NAME = "alert-warning";
+	
+	let audio;
 	
 	let play = (filename = "step.mp3") => {
 		audio.pause();
@@ -40,6 +36,10 @@
 		$("#alert").removeClass(ALERT_WARNING_CLASS_NAME);
 		$("#alert").addClass(alertClassName);
 		$("#alert span").text(msg);
+	}
+	
+	let initAlert = () => {
+		audio = document.getElementById("audio");
 	}
 </script>
 
@@ -284,12 +284,62 @@
 		return true;
 	}
 </script>
+
+<!-- App -->
+<script>
+	const STATE_INIT = 0;
+	const STATE_ASKED_MASTER_PASSWORD = 1;
+	let state = STATE_INIT;
+
+	let getInput = () => {
+		return $("#input input").val();
+	}
+
+	let submit = () => {
+		switch(state) {
+			case STATE_ASKED_MASTER_PASSWORD:
+				let masterPass = getInput();
+				saveMasterPassword(masterPass);
+			break;
+			default:
+		}
+		start();
+	}
+	
+	let askInput = (msg) => {
+		$("#input form").hide();
+		$("#input input").attr("placeholder", msg);
+		$("#input form").show();
+	}
+	
+	let start = () => {
+		if(!store.getItem(MASTER_PASS_NAME)) {
+			askInput("Save master password");
+			state = STATE_ASKED_MASTER_PASSWORD;
+			return;
+		}
+	}
+	
+	let init = () => {
+		initAlert()
+		initLoginDetails();
+		start();
+	}
+</script>
 </head>
 <body onload="init()">
 	<audio id="audio" src="step.mp3"></audio>
 	<div class="alert alert-success alert-dismissible fade" id="alert">
 		<button type="button" class="close" data-dismiss="alert">&times;</button>
 		<span>Success!</span>
+	</div>
+	<div class="hide" id="input">
+		<form class="form-inline">
+			<div class="form-group">
+				<input type="text" class="form-control" placeholder="">
+			</div>
+			<button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
+		</form>
 	</div>
 </body>
 </html>
