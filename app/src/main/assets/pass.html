@@ -7,6 +7,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+<style type="text/css">
+	.container {
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	}
+
+	.bcontainer {
+	    display: block;
+	    justify-content: center;
+	    align-items: center;
+	}
+
+	body {
+	    font-family: "Trebuchet MS", Helvetica, sans-serif;
+	    padding: 10px;
+	    height: 100%;
+	    color: white;
+	    background-color: black;
+	}
+</style>
+
 <!-- init -->
 <script>
 	const store = window.localStorage;
@@ -291,6 +313,17 @@
 	const STATE_ASKED_MASTER_PASSWORD = 1;
 	let state = STATE_INIT;
 
+	let inputHtml = (placeholder) => {
+		return `
+		<form>
+			<div class="form-group">
+				<input type="text" class="form-control" placeholder="${placeholder}">
+			</div>
+			<button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
+		</form>
+		`;
+	}
+
 	let getInput = () => {
 		return $("#input input").val();
 	}
@@ -305,11 +338,18 @@
 		}
 		start();
 	}
+
+	let clearContent = () => {
+		$("#content").empty();
+	}
+
+	let addContent = (html) => {
+		$("#content").append(html);
+	}
 	
 	let askInput = (msg) => {
-		$("#input form").hide();
-		$("#input input").attr("placeholder", msg);
-		$("#input form").show();
+		clearContent();
+		addContent(inputHtml(msg));
 	}
 	
 	let start = () => {
@@ -327,19 +367,14 @@
 	}
 </script>
 </head>
-<body onload="init()">
+<body onload="init()" class="text-center">
 	<audio id="audio" src="step.mp3"></audio>
 	<div class="alert alert-success alert-dismissible fade" id="alert">
 		<button type="button" class="close" data-dismiss="alert">&times;</button>
 		<span>Success!</span>
 	</div>
-	<div class="hide" id="input">
-		<form class="form-inline">
-			<div class="form-group">
-				<input type="text" class="form-control" placeholder="">
-			</div>
-			<button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
-		</form>
+	<div id="content" class='bcontainer'>
+		
 	</div>
 </body>
 </html>
