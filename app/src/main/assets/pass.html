@@ -20,6 +20,22 @@
 	    align-items: center;
 	}
 
+	input, button[type=submit], textarea {
+	    padding: 5px;
+	    margin: 5px;
+	    font-size: 1rem;
+	    font-weight: 400;
+	    line-height: 1.5;
+	    background-clip: padding-box;
+	    border: 1px solid #ced4da;
+	    border-radius: .25rem;
+	    width: 300px;
+	}
+
+	textarea {
+	    height: 150px;
+	}
+
 	body {
 	    font-family: "Trebuchet MS", Helvetica, sans-serif;
 	    padding: 10px;
@@ -118,12 +134,14 @@
 		}
 	
 		let savedMasterPass = store.getItem(MASTER_PASS_NAME);
-		if(savedMasterPass && savedMasterPass != oldMasterPass) {
-			alert("Wrong Password!");
-			return false;
+		if(savedMasterPass) {
+			if(savedMasterPass != oldMasterPass) {
+				alert("Wrong Password!");
+				return false;
+			}
+			
+			updateAllPasswords(oldMasterPass, masterPass);
 		}
-		
-		updateAllPasswords(oldMasterPass, masterPass);
 		
 		store.setItem(MASTER_PASS_NAME, masterPass);
 		alert("Successful!", ALERT_SUCCESS_CLASS_NAME);
@@ -315,12 +333,10 @@
 
 	let inputHtml = (placeholder) => {
 		return `
-		<form>
-			<div class="form-group">
-				<input type="text" class="form-control" placeholder="${placeholder}">
+			<div id="input">
+				<input type="text" class="form-" placeholder="${placeholder}"><br/>
+				<button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
 			</div>
-			<button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
-		</form>
 		`;
 	}
 
