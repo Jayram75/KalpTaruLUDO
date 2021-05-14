@@ -128,6 +128,10 @@
 	}
 	
 	let updateMasterPassword = (masterPass, oldMasterPass) => {
+		if(!oldMasterPass) {
+			oldMasterPass = masterPass;
+		}
+
 		if(!isValidPassword(masterPass)) {
 			alert("Invalid Password!");
 			return false;
@@ -259,6 +263,7 @@
 	}
 	
 	let updateAllPasswords = (oldMasterPass, masterPass) => {
+		if(oldMasterPass == masterPass) return;
 		for(let loginDetail of loginDetails) {
 			oldPassword = decryptPassword(oldMasterPass, loginDetail[PASSWORD_NAME]);
 			loginDetail[PASSWORD_NAME] = encryptPassword(masterPass, oldPassword);
@@ -327,32 +332,23 @@
 
 <!-- App -->
 <script>
-	const STATE_INIT = 0;
-	const STATE_ASKED_MASTER_PASSWORD = 1;
-	let state = STATE_INIT;
+	let masterPass;
 
-	let inputHtml = (placeholder) => {
+	let inputHtml = (placeholder, action) => {
 		return `
 			<div id="input">
 				<input type="text" class="form-" placeholder="${placeholder}"><br/>
-				<button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
+				<button type="submit" class="btn btn-primary" onclick="${action}()">Submit</button>
 			</div>
 		`;
 	}
 
-	let getInput = () => {
-		return $("#input input").val();
+	let buttonHtml = (title, msg, action) => {
+		return `<button type="submit" class="btn btn-primary" onclick="askInput('${msg}', '${action}')">${title}</button>`;
 	}
 
-	let submit = () => {
-		switch(state) {
-			case STATE_ASKED_MASTER_PASSWORD:
-				let masterPass = getInput();
-				saveMasterPassword(masterPass);
-			break;
-			default:
-		}
-		start();
+	let getInput = () => {
+		return $("#input input").val();
 	}
 
 	let clearContent = () => {
@@ -363,23 +359,33 @@
 		$("#content").append(html);
 	}
 	
-	let askInput = (msg) => {
+	let askInput = (msg, action) => {
 		clearContent();
-		addContent(inputHtml(msg));
+		addContent(inputHtml(msg, action));
 	}
-	
-	let start = () => {
-		if(!store.getItem(MASTER_PASS_NAME)) {
-			askInput("Save master password");
-			state = STATE_ASKED_MASTER_PASSWORD;
-			return;
+
+	let showOptions = () => {
+		clearContent();
+		addContent(buttonHtml("Update Master Password", "Enter Old Master Password", "showOptions"));
+	}
+
+	let askMasterPassword = () => {
+		askInput("Enter master password", "initApp");
+	}
+
+	let initApp = () => {
+		masterPass = getInput();
+		if(saveMasterPassword(masterPass)) {
+			initLoginDetails();
+			showOptions();
+		} else {
+			askMasterPassword();
 		}
 	}
 	
 	let init = () => {
-		initAlert()
-		initLoginDetails();
-		start();
+		initAlert();
+		askMasterPassword();
 	}
 </script>
 </head>
