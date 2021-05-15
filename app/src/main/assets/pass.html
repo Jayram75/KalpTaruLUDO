@@ -74,9 +74,15 @@
 		$("#alert").removeClass(ALERT_WARNING_CLASS_NAME);
 		$("#alert").addClass(alertClassName);
 		$("#alert span").text(msg);
+		$("#alert").show();
+	}
+
+	let hideAlert = () => {
+		$("#alert").hide();
 	}
 	
 	let initAlert = () => {
+		hideAlert();
 		audio = document.getElementById("audio");
 	}
 </script>
@@ -333,6 +339,7 @@
 <!-- App -->
 <script>
 	let masterPass;
+	let appState = {};
 
 	let inputHtml = (placeholder, action) => {
 		return `
@@ -360,13 +367,25 @@
 	}
 	
 	let askInput = (msg, action) => {
+		//hideAlert();
 		clearContent();
 		addContent(inputHtml(msg, action));
 	}
 
+	let oldMasterPasswordEntered = () => {
+		hideAlert();
+		appState = {};
+		appState.oldMasterPass = getInput();
+		if(!isValidPassword(appState.oldMasterPass)) {
+			alert("Invalid Password!");
+			return;
+		}
+		askInput("Enter new master password", "initApp");
+	}
+
 	let showOptions = () => {
 		clearContent();
-		addContent(buttonHtml("Update Master Password", "Enter Old Master Password", "showOptions"));
+		addContent(buttonHtml("Update Master Password", "Enter Old Master Password", "oldMasterPasswordEntered"));
 	}
 
 	let askMasterPassword = () => {
