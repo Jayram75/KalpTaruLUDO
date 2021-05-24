@@ -341,10 +341,10 @@
 	let masterPass;
 	let appState = {};
 
-	let inputHtml = (placeholder, action) => {
+	let inputHtml = (placeholder, action, type='password') => {
 		return `
 			<div id="input">
-				<input type="text" class="form-" placeholder="${placeholder}"><br/>
+				<input type="${type}" class="form-" placeholder="${placeholder}"><br/>
 				<button type="submit" class="btn btn-primary" onclick="${action}()">Submit</button>
 			</div>
 		`;
@@ -370,6 +370,12 @@
 		//hideAlert();
 		clearContent();
 		addContent(inputHtml(msg, action));
+		$('#input input').focus();
+		$('#input input').keyup(function(event) {
+		    if (event.keyCode === 13) {
+		        $('#input button').click();
+		    }
+		});
 	}
 
 	let oldMasterPasswordEntered = () => {
@@ -378,6 +384,11 @@
 		appState.oldMasterPass = getInput();
 		if(!isValidPassword(appState.oldMasterPass)) {
 			alert("Invalid Password!");
+			return;
+		}
+		if(masterPass != appState.oldMasterPass) {
+			alert("Old Master Password that you entered was wrong!");
+			$('#input input').val("");
 			return;
 		}
 		askInput("Enter new master password", "initApp");
