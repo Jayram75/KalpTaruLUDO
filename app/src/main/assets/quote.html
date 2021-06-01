@@ -1,0 +1,195 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="bootstrap.min.css">
+<script src="jquery.min.js"></script>
+<script src="popper.min.js"></script>
+<script src="bootstrap.min.js"></script>
+<style type="text/css">
+	.container {
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	}
+
+	.bcontainer {
+	    display: block;
+	    justify-content: center;
+	    align-items: center;
+	}
+
+	input, button[type=submit], textarea {
+	    padding: 5px;
+	    margin: 5px;
+	    font-size: 1rem;
+	    font-weight: 400;
+	    line-height: 1.5;
+	    background-clip: padding-box;
+	    border: 1px solid #ced4da;
+	    border-radius: .25rem;
+	    width: 300px;
+	}
+
+	textarea {
+	    height: 150px;
+	}
+
+	body {
+	    font-family: "Trebuchet MS", Helvetica, sans-serif;
+	    padding: 10px;
+	    height: 100%;
+	    color: white;
+	    background-color: black;
+	}
+</style>
+<!-- init -->
+<script>
+	const store = window.localStorage;
+</script>
+<!-- API -->
+<script>
+	let addQuote = (quote) => {
+		let count = store.getItem("count");
+		if(!count) count = 0;
+		count++;
+		store.setItem("count", count);
+		store.setItem(count, quote);
+	}
+
+	let removeQuote = (index) => {
+		let count = store.getItem("count");
+		if(count == 0) return false;
+		let lastQuote = store.getItem(count);
+		store.removeItem(count);
+		store.setItem("count", count - 1);
+		if(count == index) {
+			return true;
+		}
+		store.setItem(index, lastQuote);
+		return true;
+	}
+
+	let getRandomQuote = () => {
+		let count = store.getItem("count");
+		if(!count) return {};
+		let index = Math.floor(Math.random() * count) + 1;
+		return {index: index, quote: store.getItem(index)};
+	}
+
+	let getQuote = (index) => {
+		return store.getItem(index);
+	}
+</script>
+
+<script>
+	const ALERT_ERROR_CLASS_NAME = "alert-danger";
+	const ALERT_SUCCESS_CLASS_NAME = "alert-success";
+	const ALERT_INFO_CLASS_NAME = "alert-info";
+	const ALERT_WARNING_CLASS_NAME = "alert-warning";
+	
+	let audio;
+	
+	let play = (filename = "step.mp3") => {
+		audio.pause();
+		audio.src = filename;
+		audio.play().catch(function() {});
+	}
+	
+	let alert = (msg, alertClassName = ALERT_ERROR_CLASS_NAME) => {
+		play();
+		$("#alert").addClass("show");
+		$("#alert").removeClass(ALERT_ERROR_CLASS_NAME);
+		$("#alert").removeClass(ALERT_SUCCESS_CLASS_NAME);
+		$("#alert").removeClass(ALERT_INFO_CLASS_NAME);
+		$("#alert").removeClass(ALERT_WARNING_CLASS_NAME);
+		$("#alert").addClass(alertClassName);
+		$("#alert span").html(msg);
+		$("#alert").show();
+	}
+
+	let hideAlert = () => {
+		$("#alert").hide();
+	}
+	
+	let initAlert = () => {
+		hideAlert();
+		audio = document.getElementById("audio");
+	}
+</script>
+
+<script>
+
+	let textAreaHtml = (placeholder = "Enter the quote...") => {
+		return `
+			<div id="input">
+				<textarea class="form-" placeholder="${placeholder}"></textarea><br/>
+			</div>
+		`;
+	}
+
+	let buttonHtml = (title, action, arg) => {
+		return `<button type="submit" class="btn btn-primary" onclick="${action}(${arg})">${title}</button>`;
+	}
+
+	let getInput = () => {
+		return $("#input textarea").val();
+	}
+
+	let clearContent = () => {
+		$("#content").empty();
+	}
+
+	let addContent = (html) => {
+		$("#content").append(html);
+	}
+	
+	let showOptions = () => {
+		clearContent();
+		let quoteObject = getRandomQuote();
+		addContent(textAreaHtml(quoteObject.quote || undefined));
+		$('#input textarea').focus();
+		addContent(buttonHtml("Add This Quote", "quoteAdded"));
+		addContent(buttonHtml("Remove this Quote", "quoteRemoved", quoteObject.index));
+		addContent(buttonHtml("Next Quote >>>", "nextQuote"));
+	}
+
+	let nextQuote = () => {
+		hideAlert();
+		showOptions();
+	}
+
+	let quoteAdded = () => {
+		hideAlert();
+		let quote = getInput();
+		if(!quote) return;
+		addQuote(quote);
+		alert("Successfully Added! <br/>" + quote);
+		showOptions();
+	}
+
+	let quoteRemoved = (index) => {
+		hideAlert();
+		let quote = getQuote(index);
+		if(!removeQuote(index)) return;
+		alert("Successfully Removed! <br/>" + quote);
+		showOptions();
+	}
+	
+	let init = () => {
+		initAlert();
+		showOptions();
+	}
+</script>
+</head>
+<body onload="init()" class="text-center">
+	<audio id="audio" src="step.mp3"></audio>
+	<div class="alert alert-success alert-dismissible fade" id="alert">
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		<span>Success!</span>
+	</div>
+	<div id="content" class='bcontainer'>
+		
+	</div>
+</body>
+</html>
