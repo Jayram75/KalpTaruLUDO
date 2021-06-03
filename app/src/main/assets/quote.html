@@ -49,12 +49,15 @@
 </script>
 <!-- API -->
 <script>
-	let addQuote = (quote) => {
-		let count = store.getItem("count");
-		if(!count) count = 0;
-		count++;
-		store.setItem("count", count);
-		store.setItem(count, quote);
+	let addQuote = (quote, index) => {
+		if(!index) {
+			let count = store.getItem("count");
+			if(!count) count = 0;
+			count++;
+			store.setItem("count", count);
+			index = count;
+		}
+		store.setItem(index, quote);
 	}
 
 	let removeQuote = (index) => {
@@ -119,17 +122,21 @@
 </script>
 
 <script>
+	let quoteObject;
 
-	let textAreaHtml = (placeholder = "Enter the quote...") => {
+	let textAreaHtml = (placeholder = "Enter the note...", note) => {
 		return `
 			<div id="input">
-				<textarea class="form-" placeholder="${placeholder}"></textarea><br/>
+				<textarea class="form-" placeholder="${placeholder}">${note || ""}</textarea><br/>
 			</div>
 		`;
 	}
 
 	let buttonHtml = (title, action, arg) => {
-		return `<button type="submit" class="btn btn-primary" onclick="${action}(${arg})">${title}</button>`;
+		if(arg) {
+			arg = JSON.stringify(JSON.stringify(arg)).slice(1, -1).replaceAll('"', '&quot;');
+		}
+		return `<button type="submit" class="btn btn-primary" onclick="${action}('${arg}')">${title}</button><br/>`;
 	}
 
 	let getInput = () => {
@@ -143,15 +150,23 @@
 	let addContent = (html) => {
 		$("#content").append(html);
 	}
+
+	let editQuote = () => {
+		clearContent();
+		addContent(textAreaHtml("Nothing to edit!", quoteObject.quote || undefined));
+		$('#input textarea').focus();
+		addContent(buttonHtml("Save This Note", "quoteAdded", quoteObject.index));
+	}
 	
 	let showOptions = () => {
 		clearContent();
-		let quoteObject = getRandomQuote();
+		quoteObject = getRandomQuote();
 		addContent(textAreaHtml(quoteObject.quote || undefined));
 		$('#input textarea').focus();
-		addContent(buttonHtml("Add This Quote", "quoteAdded"));
-		addContent(buttonHtml("Remove this Quote", "quoteRemoved", quoteObject.index));
-		addContent(buttonHtml("Next Quote >>>", "nextQuote"));
+		addContent(buttonHtml("Add This Note", "quoteAdded"));
+		addContent(buttonHtml("Remove This Note", "quoteRemoved", quoteObject.index));
+		addContent(buttonHtml("Next Note >>>", "nextQuote"));
+		addContent(buttonHtml("Edit Note", "editQuote"));
 	}
 
 	let nextQuote = () => {
@@ -159,12 +174,12 @@
 		showOptions();
 	}
 
-	let quoteAdded = () => {
+	let quoteAdded = (index) => {
 		hideAlert();
 		let quote = getInput();
 		if(!quote) return;
-		addQuote(quote);
-		alert("Successfully Added! <br/>" + quote);
+		addQuote(quote, index);
+		alert("Successfully Done! <br/>" + quote);
 		showOptions();
 	}
 
@@ -185,7 +200,6 @@
 <body onload="init()" class="text-center">
 	<audio id="audio" src="step.mp3"></audio>
 	<div class="alert alert-success alert-dismissible fade" id="alert">
-		<button type="button" class="close" data-dismiss="alert">&times;</button>
 		<span>Success!</span>
 	</div>
 	<div id="content" class='bcontainer'>
