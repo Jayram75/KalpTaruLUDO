@@ -132,11 +132,8 @@
 		`;
 	}
 
-	let buttonHtml = (title, action, arg) => {
-		if(arg) {
-			arg = JSON.stringify(JSON.stringify(arg)).slice(1, -1).replaceAll('"', '&quot;');
-		}
-		return `<button type="submit" class="btn btn-primary" onclick="${action}('${arg}')">${title}</button><br/>`;
+	let buttonHtml = (title, action) => {
+		return `<button type="submit" class="btn btn-primary" onclick="${action}()">${title}</button><br/>`;
 	}
 
 	let getInput = () => {
@@ -155,7 +152,7 @@
 		clearContent();
 		addContent(textAreaHtml("Nothing to edit!", quoteObject.quote || undefined));
 		$('#input textarea').focus();
-		addContent(buttonHtml("Save This Note", "quoteAdded", quoteObject.index));
+		addContent(buttonHtml("Save This Note", "quoteEdited"));
 	}
 	
 	let showOptions = () => {
@@ -164,7 +161,7 @@
 		addContent(textAreaHtml(quoteObject.quote || undefined));
 		$('#input textarea').focus();
 		addContent(buttonHtml("Add This Note", "quoteAdded"));
-		addContent(buttonHtml("Remove This Note", "quoteRemoved", quoteObject.index));
+		addContent(buttonHtml("Remove This Note", "quoteRemoved"));
 		addContent(buttonHtml("Next Note >>>", "nextQuote"));
 		addContent(buttonHtml("Edit Note", "editQuote"));
 	}
@@ -172,6 +169,10 @@
 	let nextQuote = () => {
 		hideAlert();
 		showOptions();
+	}
+
+	let quoteEdited = () => {
+		quoteAdded(quoteObject.index);
 	}
 
 	let quoteAdded = (index) => {
@@ -183,8 +184,9 @@
 		showOptions();
 	}
 
-	let quoteRemoved = (index) => {
+	let quoteRemoved = () => {
 		hideAlert();
+		let index = quoteObject.index;
 		let quote = getQuote(index);
 		if(!removeQuote(index)) return;
 		alert("Successfully Removed! <br/>" + quote);
