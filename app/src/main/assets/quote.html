@@ -99,7 +99,7 @@
 		audio.play().catch(function() {});
 	}
 	
-	let alert = (msg, alertClassName = ALERT_ERROR_CLASS_NAME) => {
+	let alert = (msg, alertClassName = ALERT_SUCCESS_CLASS_NAME) => {
 		play();
 		$("#alert").addClass("show");
 		$("#alert").removeClass(ALERT_ERROR_CLASS_NAME);

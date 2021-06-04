@@ -11,6 +11,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         WebView wv = new WebView(this);
         wv.getSettings().setJavaScriptEnabled(true);
+        wv.getSettings().setDomStorageEnabled(true);
         wv.clearCache(true);
         wv.clearView();
         wv.reload();
