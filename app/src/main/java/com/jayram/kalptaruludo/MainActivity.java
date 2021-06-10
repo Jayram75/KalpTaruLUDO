@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         wv.clearView();
         wv.reload();
         wv.loadUrl("about:blank");
-        wv.loadUrl("file:///android_asset/Ludo.html");
+        wv.loadUrl("file:///android_asset/quote.html");
         setContentView(wv);
     }
 }
